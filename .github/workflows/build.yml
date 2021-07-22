@@ -1,0 +1,17 @@
+name: Build
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: almalinux:8
+    steps:
+
+    - name: Get files
+      uses: actions/checkout@v2
+
+    - name: Build Header
+      run: |
+        dnf update -y && dnf upgrade -y
+        dnf install -y gcc
+        gcc ./include/uefi.h -o uefi.pch
