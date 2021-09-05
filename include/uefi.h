@@ -154,6 +154,10 @@ typedef struct _EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL {
     SIMPLE_TEXT_OUTPUT_MODE *Mode;
 } EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
 
+
+/**
+  * Runtime Services
+  **/
 typedef struct {
     UINT16 Year;
     UINT8 Month;
@@ -167,6 +171,11 @@ typedef struct {
     UINT8 Daylight;
     UINT8 Pad2;
 } EFI_TIME;
+
+#define EFI_TIME_ADJUST_DAYLIGHT 0x01
+#define EFI_TIME_IN_DAYLIGHT 0x02
+
+#define EFI_UNSPECIFIED_TIMEZONE 0x07FF
 
 typedef struct {
     UINT32 Resolution;
@@ -192,6 +201,9 @@ typedef struct {
 
 typedef EFI_STATUS (EFIAPI *EFI_SET_VIRTUAL_ADDRESS_MAP) ( IN UINTN MemoryMapSize, IN UINTN DescriptorSize, IN UINT32 DescriptorVersion, IN EFI_MEMORY_DESCRIPTOR *VirtualMap );
 typedef EFI_STATUS (EFIAPI *EFI_CONVERT_POINTER) ( IN UINTN DebugDisposition, IN VOID **Address );
+
+#define EFI_OPTIONAL_PTR 0x00000001
+
 typedef EFI_STATUS (EFIAPI *EFI_GET_VARIABLE) ( IN CHAR16 *VariableName, IN EFI_GUID *VendorGuid, OUT UINT32 *Attributes OPTIONAL, IN OUT UINTN *DataSize, OUT VOID *Data OPTIONAL );
 typedef EFI_STATUS (EFIAPI *EFI_GET_NEXT_VARIABLE_NAME) ( IN OUT UINTN *VariableNameSize, IN OUT CHAR16 *VariableName, IN OUT EFI_GUID *VendorGuid );
 typedef EFI_STATUS (EFIAPI *EFI_SET_VARIABLE) ( IN CHAR16 *VariableName, IN EFI_GUID *VendorGuid, IN UINT32 Attributes, IN UINTN DataSize, IN VOID *Data );
@@ -207,15 +219,89 @@ typedef enum {
 typedef VOID (EFIAPI *EFI_RESET_SYSTEM) ( IN EFI_RESET_TYPE ResetType, IN EFI_STATUS ResetStatus, IN UINTN DataSize, IN VOID *ResetData OPTIONAL );
 
 typedef struct {
+    UINT64 Length;
+    union {
+        EFI_PHYSICAL_ADDRESS DataBlock;
+        EFI_PHYSICAL_ADDRESS ContinuationPointer;
+    } Union;
+} EFI_CAPSULE_BLOCK_DESCRIPTOR;
+
+typedef struct {
     EFI_GUID CapsuleGuid;
     UINT32 HeaderSize;
     UINT32 Flags;
     UINT32 CapsuleImageSize;
 } EFI_CAPSULE_HEADER;
 
+#define CAPSULE_FLAGS_PERSIST_ACROSS_RESET 0x00010000
+#define CAPSULE_FLAGS_POPULATE_SYSTEM_TABLE 0x00020000
+#define CAPSULE_FLAGS_INITIATE_RESET 0x00040000
+
 typedef EFI_STATUS (EFIAPI *EFI_UPDATE_CAPSULE) ( IN EFI_CAPSULE_HEADER **CapsuleHeaderArray, IN UINTN CapsuleCount, IN EFI_PHYSICAL_ADDRESS ScatterGatherList OPTIONAL );
 typedef EFI_STATUS (EFIAPI *EFI_QUERY_CAPSULE_CAPABILITIES) ( IN EFI_CAPSULE_HEADER **CapsuleHeaderArray, IN UINTN CapsuleCount, OUT UINT64 *MaximumCapsuleSize, OUT EFI_RESET_TYPE *ResetType );
 typedef EFI_STATUS (EFIAPI *EFI_QUERY_VARIABLE_INFO) ( IN UINT32 Attributes, OUT UINT64 *MaximumVariableStorageSize, OUT UINT64 *RemainingVariableStorageSize, OUT UINT64 *MaximumVariableSize );
+
+#define EFI_RUNTIME_SERVICES_SIGNATURE 0x56524553544e5552
+#define EFI_RUNTIME_SERVICES_REVISION EFI_SPECIFICATION_VERSION
+
+typedef struct {
+    UINT32 CapsuleArrayNumber;
+    VOID* CapsulePtr[1];
+} EFI_CAPSULE_TABLE;
+
+#define EFI_MEMORY_RANGE_CAPSULE_GUID { 0xde9f0ec, 0x88b6, 0x428f, { 0x97, 0x7a, 0x25, 0x8f, 0x1d, 0xe, 0x5e, 0x72 } }
+
+typedef struct {
+    EFI_PHYSICAL_ADDRESS Address;
+    UINT64 Length;
+} EFI_MEMORY_RANGE;
+
+typedef struct {
+    EFI_CAPSULE_HEADER Header;
+    UINT32 OsRequestedMemoryType;
+    UINT64 NumberOfMemoryRanges;
+    EFI_MEMORY_RANGE MemoryRanges[];
+} EFI_MEMORY_RANGE_CAPSULE;
+
+typedef struct {
+    UINT64 FirmwareMemoryRequirement;
+    UINT64 NumberOfMemoryRanges;
+} EFI_MEMORY_RANGE_CAPSULE_RESULT;
+
+#define EFI_OS_INDICATIONS_BOOT_TO_FW_UI 0x0000000000000001
+#define EFI_OS_INDICATIONS_TIMESTAMP_REVOCATION 0x0000000000000002
+#define EFI_OS_INDICATIONS_FILE_CAPSULE_DELIVERY_SUPPORTED 0x0000000000000004
+#define EFI_OS_INDICATIONS_FMP_CAPSULE_SUPPORTED 0x0000000000000008
+#define EFI_OS_INDICATIONS_CAPSULE_RESULT_VAR_SUPPORTED 0x0000000000000010
+#define EFI_OS_INDICATIONS_START_OS_RECOVERY 0x0000000000000020
+#define EFI_OS_INDICATIONS_START_PLATFORM_RECOVERY 0x0000000000000040
+#define EFI_OS_INDICATIONS_JSON_CONFIG_DATA_REFRESH 0x0000000000000080
+
+#define EFI_CAPSULE_REPORT_GUID { 0x39b68c46, 0xf7fb, 0x441b, { 0xb6, 0xec, 0x16, 0xb0, 0xf6, 0x98, 0x21, 0xf3 } };
+
+typedef struct {
+    UINT32 VariableTotalSize;
+    UINT32 Reserved;
+    EFI_GUID CapsuleGuid;
+    EFI_TIME CapsuleProcessed;
+    EFI_STATUS CapsuleStatus;
+} EFI_CAPSULE_RESULT_VARIABLE_HEADER;
+
+typedef struct {
+    UINT16 Version;
+    UINT8 PayloadIndex;
+    UINT8 UpdateImageIndex;
+    EFI_GUID UpdateImageTypeId;
+    // CHAR16 CapsuleFileName[];
+    // CHAR16 CapsuleTarget[];
+} EFI_CAPSULE_RESULT_VARIABLE_FMP;
+
+typedef struct {
+    UINT32 Version;
+    UINT32 CapsuleId;
+    UINT32 RespLength;
+    UINT8 Resp[];
+} EFI_CAPSULE_RESULT_VARIABLE_JSON;
 
 typedef struct {
     EFI_TABLE_HEADER Hdr;
