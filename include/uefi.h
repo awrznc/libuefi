@@ -403,6 +403,72 @@ typedef VOID (EFIAPI *EFI_COPY_MEM) ( IN VOID *Destination, IN VOID *Source, IN 
 typedef VOID (EFIAPI *EFI_SET_MEM) ( IN VOID *Buffer, IN UINTN Size, IN UINT8 Value );
 typedef EFI_STATUS (EFIAPI *EFI_CREATE_EVENT_EX) ( IN UINT32 Type, IN EFI_TPL NotifyTpl,  IN EFI_EVENT_NOTIFY NotifyFunction OPTIONAL, IN CONST VOID *NotifyContext OPTIONAL, IN CONST EFI_GUID *EventGroup OPTIONAL, OUT EFI_EVENT *Event );
 
+/**
+  * Boot Manager
+  **/
+typedef struct _EFI_LOAD_OPTION {
+    UINT32 Attributes;
+    UINT16 FilePathListLength;
+    // CHAR16 Description[];
+    // EFI_DEVICE_PATH_PROTOCOL FilePathList[];
+    // UINT8 OptionalData[];
+} EFI_LOAD_OPTION;
+
+#define LOAD_OPTION_ACTIVE 0x00000001
+#define LOAD_OPTION_FORCE_RECONNECT 0x00000002
+#define LOAD_OPTION_HIDDEN 0x00000008
+#define LOAD_OPTION_CATEGORY 0x00001F00
+#define LOAD_OPTION_CATEGORY_BOOT 0x00000000
+#define LOAD_OPTION_CATEGORY_APP 0x00000100
+
+#define EFI_BOOT_OPTION_SUPPORT_KEY 0x00000001
+#define EFI_BOOT_OPTION_SUPPORT_APP 0x00000002
+#define EFI_BOOT_OPTION_SUPPORT_SYSPREP 0x00000010
+#define EFI_BOOT_OPTION_SUPPORT_COUNT 0x00000300
+
+typedef union {
+    struct {
+        UINT32 Revision : 8;
+        UINT32 ShiftPressed : 1;
+        UINT32 ControlPressed : 1;
+        UINT32 AltPressed : 1;
+        UINT32 LogoPressed : 1;
+        UINT32 MenuPressed : 1;
+        UINT32 SysReqPressed : 1;
+        UINT32 Reserved : 16;
+        UINT32 InputKeyCount : 2;
+    } Options;
+    UINT32 PackedValue;
+} EFI_BOOT_KEY_DATA;
+
+typedef struct _EFI_KEY_OPTION {
+    EFI_BOOT_KEY_DATA KeyData;
+    UINT32 BootOptionCrc;
+    UINT16 BootOption;
+    // EFI_INPUT_KEY Keys[];
+} EFI_KEY_OPTION;
+
+#define EFI_BOOT_MANAGER_POLICY_PROTOCOL_GUID  { 0xfedf8e0c, 0xe147, 0x11e3, { 0x99, 0x03, 0xb8, 0xe8, 0x56, 0x2c, 0xba, 0xfa } }
+
+typedef struct _EFI_BOOT_MANAGER_POLICY_PROTOCOL EFI_BOOT_MANAGER_POLICY_PROTOCOL;
+
+#define EFI_BOOT_MANAGER_POLICY_PROTOCOL_REVISION 0x00010000
+
+typedef EFI_STATUS (EFIAPI *EFI_BOOT_MANAGER_POLICY_CONNECT_DEVICE_PATH) ( IN EFI_BOOT_MANAGER_POLICY_PROTOCOL *This, IN EFI_DEVICE_PATH *DevicePath, IN BOOLEAN Recursive );
+typedef EFI_STATUS (EFIAPI *EFI_BOOT_MANAGER_POLICY_CONNECT_DEVICE_CLASS) ( IN EFI_BOOT_MANAGER_POLICY_PROTOCOL *This, IN EFI_GUID *Class );
+
+typedef struct _EFI_BOOT_MANAGER_POLICY_PROTOCOL {
+    UINT64 Revision;
+    EFI_BOOT_MANAGER_POLICY_CONNECT_DEVICE_PATH ConnectDevicePath;
+    EFI_BOOT_MANAGER_POLICY_CONNECT_DEVICE_CLASS ConnectDeviceClass;
+} EFI_BOOT_MANAGER_POLICY_PROTOCOL;
+
+#define EFI_BOOT_MANAGER_POLICY_CONSOLE_GUID { 0xcab0e94c, 0xe15f, 0x11e3, { 0x91, 0x8d, 0xb8, 0xe8, 0x56, 0x2c, 0xba, 0xfa } }
+#define EFI_BOOT_MANAGER_POLICY_NETWORK_GUID { 0xd04159dc, 0xe15f, 0x11e3, { 0xb2, 0x61, 0xb8, 0xe8, 0x56, 0x2c, 0xba, 0xfa } }
+#define EFI_BOOT_MANAGER_POLICY_CONNECT_ALL_GUID { 0x113b2126, 0xfc8a, 0x11e3, { 0xbd, 0x6c, 0xb8, 0xe8, 0x56, 0x2c, 0xba, 0xfa } }
+
+#define EFI_GLOBAL_VARIABLE { 0x8be4df61, 0x93ca, 0x11d2, { 0xaa, 0x0d, 0x00, 0xe0, 0x98, 0x03, 0x2b, 0x8c } }
+
 
 /**
   * EFI System Table
