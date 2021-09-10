@@ -774,6 +774,45 @@ typedef VOID (EFIAPI *EFI_COPY_MEM) ( IN VOID *Destination, IN VOID *Source, IN 
 typedef VOID (EFIAPI *EFI_SET_MEM) ( IN VOID *Buffer, IN UINTN Size, IN UINT8 Value );
 typedef EFI_STATUS (EFIAPI *EFI_CREATE_EVENT_EX) ( IN UINT32 Type, IN EFI_TPL NotifyTpl,  IN EFI_EVENT_NOTIFY NotifyFunction OPTIONAL, IN CONST VOID *NotifyContext OPTIONAL, IN CONST EFI_GUID *EventGroup OPTIONAL, OUT EFI_EVENT *Event );
 
+
+/**
+  * GPT Disk Layout
+  **/
+#pragma pack(1)
+typedef struct {
+    UINT8 BootIndicator;
+    UINT8 StartHead;
+    UINT8 StartSector;
+    UINT8 StartTrack;
+    UINT8 OSIndicator;
+    UINT8 EndHead;
+    UINT8 EndSector;
+    UINT8 EndTrack;
+    UINT8 StartingLBA[4];
+    UINT8 SizeInLBA[4];
+} MBR_PARTITION_RECORD;
+
+typedef struct {
+    UINT8 BootStrapCode[440];
+    UINT8 UniqueMbrSignature[4];
+    UINT8 Unknown[2];
+    MBR_PARTITION_RECORD Partition[4];
+    UINT16 Signature;
+} MASTER_BOOT_RECORD;
+#pragma pack()
+
+#pragma pack(1)
+typedef struct {
+    EFI_GUID PartitionTypeGUID;
+    EFI_GUID UniquePartitionGUID;
+    EFI_LBA StartingLBA;
+    EFI_LBA EndingLBA;
+    UINT64 Attributes;
+    CHAR16 PartitionName[36];
+} EFI_PARTITION_ENTRY;
+#pragma pack()
+
+
 /**
   * Boot Manager
   **/
