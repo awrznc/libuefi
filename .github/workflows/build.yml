@@ -2,16 +2,30 @@ name: Build
 on: push
 
 jobs:
-  build:
+  linux_build:
     runs-on: ubuntu-latest
-    container: almalinux:8
+    container: debian:11
     steps:
 
     - name: Get files
       uses: actions/checkout@v2
 
+    - name: Install tools
+      run: |
+        apt update -y && apt upgrade -y
+        apt install -y make cmake clang lld qemu-system-x86 ovmf
+
     - name: Build Header
       run: |
-        dnf update -y && dnf upgrade -y
-        dnf install -y gcc
-        gcc ./include/uefi.h -o uefi.pch
+        clang ./include/uefi.h -o uefi.pch
+
+    - name: Build with CMake
+      run: |
+        mkdir -p build && cd build
+        cmake -DCMAKE_C_COMPILER=clang ../test/
+        cmake --build . -- -j 2
+
+    - name: Testing
+      run: |
+        cd build
+        ctest --parallel 2 --output-on-failure --timeout 60

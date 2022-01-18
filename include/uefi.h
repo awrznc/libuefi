@@ -20,18 +20,18 @@
   * Data Types
   **/
 typedef signed char BOOLEAN;
-typedef signed long int INTN;
-typedef unsigned long int UINTN;
+typedef signed int INTN;
+typedef unsigned int UINTN;
 typedef signed char INT8;
 typedef unsigned char UINT8;
 typedef signed short int INT16;
 typedef unsigned short int UINT16;
-typedef signed long int INT32;
-typedef unsigned long int UINT32;
+typedef signed int INT32;
+typedef unsigned int UINT32;
 typedef signed long long int INT64;
 typedef unsigned long long int UINT64;
-// typedef (16-byte signed type) INT128;
-// typedef (16-byte unsigned type) UINT128;
+typedef signed char INT128[16];
+typedef unsigned char UINT128[16];
 typedef signed char CHAR8;
 typedef signed short int CHAR16;
 typedef void VOID;
@@ -1531,7 +1531,7 @@ typedef struct {
 } EFI_NVDIMM_LABEL_SET_COOKIE_MAP;
 
 typedef struct {
-    EFI_NVDIMM_LABEL_SET_COOKIE_MAP Mapping[0];
+    EFI_NVDIMM_LABEL_SET_COOKIE_MAP Mapping[1];
 } EFI_NVDIMM_LABEL_SET_COOKIE_INFO;
 
 #define EFI_UFS_DEVICE_CONFIG_GUID { 0xb81bfab0, 0xeb3, 0x4cf9, { 0x84, 0x65, 0x7f, 0xa9, 0x86, 0x36, 0x16, 0x64 } }
