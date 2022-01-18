@@ -19,7 +19,7 @@ jobs:
       run: |
         clang ./include/uefi.h -o uefi.pch
 
-    - name: Build with Clang
+    - name: Build with CMake
       run: |
         mkdir -p build && cd build
         cmake -DCMAKE_C_COMPILER=clang ../test/
@@ -27,4 +27,5 @@ jobs:
 
     - name: Testing
       run: |
+        cd build
         ctest --parallel 2 --output-on-failure --timeout 60
