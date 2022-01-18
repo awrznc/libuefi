@@ -1531,7 +1531,7 @@ typedef struct {
 } EFI_NVDIMM_LABEL_SET_COOKIE_MAP;
 
 typedef struct {
-    EFI_NVDIMM_LABEL_SET_COOKIE_MAP Mapping[0];
+    EFI_NVDIMM_LABEL_SET_COOKIE_MAP Mapping[1];
 } EFI_NVDIMM_LABEL_SET_COOKIE_INFO;
 
 #define EFI_UFS_DEVICE_CONFIG_GUID { 0xb81bfab0, 0xeb3, 0x4cf9, { 0x84, 0x65, 0x7f, 0xa9, 0x86, 0x36, 0x16, 0x64 } }
