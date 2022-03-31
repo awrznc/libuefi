@@ -1,8 +1,16 @@
 cmake_minimum_required(VERSION 3.10)
 project(libuefi_test C)
 
-set(CMAKE_C_LINK_EXECUTABLE "lld-link-11 /subsystem:efi_application /entry:efi_main /out:<TARGET> <OBJECTS>")
-set(CMAKE_CROSSCOMPILING_EMULATOR qemu-system-x86_64 -bios OVMF.fd -nographic -drive format=raw,file=fat:rw:bin)
+if(MSVC)
+  set(CMAKE_C_LINK_EXECUTABLE "link.exe /subsystem:efi_application /nodefaultlib /entry:efi_main /out:<TARGET> <OBJECTS>")
+elseif(UNIX AND NOT APPLE)
+  set(CMAKE_C_LINK_EXECUTABLE "lld-link-11 /subsystem:efi_application /entry:efi_main /out:<TARGET> <OBJECTS>")
+endif()
+
+if(NOT OVMF)
+  set(OVMF "OVMF.fd")
+endif()
+set(CMAKE_CROSSCOMPILING_EMULATOR qemu-system-x86_64 -bios ${OVMF} -nographic -drive format=raw,file=fat:rw:bin)
 
 enable_testing()
 
@@ -15,8 +23,15 @@ foreach(SOURCE_CODE ${SOURCE_CODE_LIST})
 
   # Build
   add_executable(${TEST_TARGET} ${SOURCE_CODE})
-  set_target_properties(${TEST_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/${TEST_TARGET}/EFI/BOOT/ OUTPUT_NAME "BOOTX64.EFI")
-  target_compile_options(${TEST_TARGET} PUBLIC $<$<C_COMPILER_ID:Clang>:-target x86_64-pc-win32-coff -fno-stack-protector -fshort-wchar -std=c11 -Wall -Wextra -Wpedantic>)
+  set_target_properties(${TEST_TARGET} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/${TEST_TARGET}/EFI/BOOT/
+    RUNTIME_OUTPUT_NAME "BOOTX64"
+    SUFFIX ".EFI"
+  )
+  target_compile_options(${TEST_TARGET} PUBLIC
+    $<$<C_COMPILER_ID:Clang>:-target x86_64-pc-win32-coff -fno-stack-protector -fshort-wchar -std=c11 -Wall -Wextra -Wpedantic>
+    $<$<C_COMPILER_ID:MSVC>:/GS- /std:c11 /W3>
+  )
   target_include_directories(${TEST_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include/ ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
   # Run test
