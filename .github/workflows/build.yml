@@ -2,6 +2,39 @@ name: Build
 on: push
 
 jobs:
+
+  windows_build:
+    runs-on: windows-latest
+    steps:
+
+    - name: Get files
+      uses: actions/checkout@v2
+
+    - name: Install tools
+      run: |
+        bash -c 'curl -OL https://qemu.weilnetz.de/w64/2021/qemu-w64-setup-20211215.exe'
+        bash -c 'curl -OL https://jaist.dl.sourceforge.net/project/edk2/OVMF/OVMF-X64-r15214.zip'
+        bash -c 'curl -OL https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-win.zip'
+        7z.exe x -oqemu ./qemu-w64-setup-20211215.exe
+        7z.exe x -oovmf ./OVMF-X64-r15214.zip
+        7z.exe x -oninja ./ninja-win.zip
+        echo (Resolve-Path ./qemu/).Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo (Resolve-Path ./ninja/).Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Build with CMake
+      run: |
+        ${VS_INST_PATH} = vswhere.exe -latest -property installationPath
+        Import-Module ${VS_INST_PATH}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll
+        Enter-VsDevShell -VsInstallPath ${VS_INST_PATH} -SkipAutomaticLocation -DevCmdArguments '-arch=x64 -no_logo'
+        mkdir -p build && cd build
+        cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_LINKER=link -DCMAKE_C_COMPILER=cl -DOVMF=".\..\ovmf\OVMF.fd" ..\test\
+        cmake --build . -- -j 2
+
+    - name: Testing
+      run: |
+        cd build
+        ctest --parallel 2 --output-on-failure --timeout 60
+
   linux_build:
     runs-on: ubuntu-latest
     container: debian:11
@@ -13,16 +46,12 @@ jobs:
     - name: Install tools
       run: |
         apt update -y && apt upgrade -y
-        apt install -y make cmake clang lld qemu-system-x86 ovmf
-
-    - name: Build Header
-      run: |
-        clang ./include/uefi.h -o uefi.pch
+        apt install -y ninja-build cmake clang lld qemu-system-x86 ovmf
 
     - name: Build with CMake
       run: |
         mkdir -p build && cd build
-        cmake -DCMAKE_C_COMPILER=clang ../test/
+        cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang ../test/
         cmake --build . -- -j 2
 
     - name: Testing
