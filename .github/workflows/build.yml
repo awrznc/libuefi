@@ -35,6 +35,12 @@ jobs:
         cd build
         ctest --parallel 2 --output-on-failure --timeout 60
 
+    - name: Upload archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows-bin
+        path: build/bin/*
+
   linux_build:
     runs-on: ubuntu-latest
     container: debian:11
@@ -58,3 +64,40 @@ jobs:
       run: |
         cd build
         ctest --parallel 2 --output-on-failure --timeout 60
+
+    - name: Upload archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: linux-bin
+        path: build/bin/*
+
+  macos_build:
+    runs-on: macos-latest
+    steps:
+
+    - name: Get files
+      uses: actions/checkout@v2
+
+    - name: Install tools
+      run: |
+        brew install qemu llvm@11 p7zip ninja
+        DLC=$(curl https://www.kraxel.org/repos/jenkins/edk2/ | grep edk2.git-ovmf-x64 | sed -E "s/^.*(edk2.git-ovmf-x64.+.rpm).*$/\1/")
+        curl -LO https://www.kraxel.org/repos/jenkins/edk2/${DLC}
+        7z x -oovmf ./${DLC} && 7z x ./ovmf/* -oovmf
+
+    - name: Build with CMake
+      run: |
+        mkdir -p build && cd build
+        cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DOVMF=./../ovmf/usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd ../test/
+        cmake --build . -- -j 2
+
+    - name: Testing
+      run: |
+        cd build
+        ctest --parallel 2 --output-on-failure --timeout 60
+
+    - name: Upload archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: macos-bin
+        path: build/bin/*
