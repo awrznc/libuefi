@@ -35,6 +35,12 @@ jobs:
         cd build
         ctest --parallel 2 --output-on-failure --timeout 60
 
+    - name: Upload archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows-bin
+        path: build/bin/*
+
   linux_build:
     runs-on: ubuntu-latest
     container: debian:11
@@ -58,3 +64,9 @@ jobs:
       run: |
         cd build
         ctest --parallel 2 --output-on-failure --timeout 60
+
+    - name: Upload archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: linux-bin
+        path: build/bin/*
