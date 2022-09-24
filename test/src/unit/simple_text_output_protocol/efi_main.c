@@ -8,8 +8,19 @@ EFI_STATUS efi_main(
         SystemTable->RuntimeServices->ResetSystem(EfiResetShutdown, EFI_LOAD_ERROR, 0, NULL);
     }
 
-    EFI_STATUS result = SystemTable->ConOut->OutputString( SystemTable->ConOut, (CHAR16 *)L"example text.\r\n" );
-    SystemTable->RuntimeServices->ResetSystem( EfiResetShutdown, result, 0, NULL );
+    EFI_STATUS status = EFI_SUCCESS;
+
+    // OutputString() test
+    {
+        status = SystemTable->ConOut->OutputString( SystemTable->ConOut, (CHAR16 *)L"example text.\r\n" );
+        if ( status != EFI_SUCCESS ) {
+            SystemTable->ConOut->OutputString( SystemTable->ConOut, L"OutputString() test failed.\r\n");
+            SystemTable->RuntimeServices->ResetSystem( EfiResetShutdown, status, 0, NULL );
+        }
+    }
+
+    SystemTable->ConOut->OutputString( SystemTable->ConOut, (CHAR16 *)L"test success.\r\n" );
+    SystemTable->RuntimeServices->ResetSystem( EfiResetShutdown, status, 0, NULL );
 
     return EFI_SUCCESS;
 }

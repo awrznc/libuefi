@@ -39,5 +39,5 @@ foreach(SOURCE_CODE ${SOURCE_CODE_LIST})
 
   # Run test
   add_test( NAME ${TEST_TARGET} COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR}/${TEST_TARGET} )
-  set_tests_properties( ${TEST_TARGET} PROPERTIES FAIL_REGULAR_EXPRESSION "test failed" )
+  set_tests_properties( ${TEST_TARGET} PROPERTIES PASS_REGULAR_EXPRESSION "test success" FAIL_REGULAR_EXPRESSION "test failed" )
 endforeach(SOURCE_CODE)
