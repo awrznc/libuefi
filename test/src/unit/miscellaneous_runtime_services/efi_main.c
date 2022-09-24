@@ -51,6 +51,7 @@ EFI_STATUS efi_main(
 
     // ResetSystem() test
     {
+        SystemTable->ConOut->OutputString( SystemTable->ConOut, (CHAR16 *)L"test success.\r\n" );
         SystemTable->RuntimeServices->ResetSystem(EfiResetShutdown, 10, 0, NULL);
         SystemTable->ConOut->OutputString( SystemTable->ConOut, L"ResetSystem() test failed.\r\n");
     }
